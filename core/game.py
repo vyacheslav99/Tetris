@@ -14,7 +14,7 @@ class Tetris(QMainWindow):
         self.statusbar = self.statusBar()
         self.tboard.msg2Statusbar[str].connect(self.statusbar.showMessage)
 
-        self.resize(180, 380)
+        self.resize(270, 570)  # 180, 380 исходный размер
         self.center()
         self.setWindowTitle('Тетрис')
         self.show()
