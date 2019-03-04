@@ -1,3 +1,6 @@
+import copy
+
+
 class Figure(object):
 
     FIG_TYPE_NONE = 0
@@ -23,39 +26,32 @@ class Figure(object):
     def __init__(self, fig_type):
         self.fig_type = fig_type
         self.offsets = [[el[0], el[1]] for el in Figure.FigOffsets[fig_type]]
+        self.prew_offsets = None
 
-    def rotateLeft(self):
+    def rotate_left(self):
         # повернуть против часовой стрелки
+        self.prew_offsets = copy.deepcopy(self.offsets)
+
         for item in self.offsets:
             if self.fig_type in (Figure.FIG_TYPE_NONE, Figure.FIG_TYPE_SQUIRE):
                 return
             else:
                 item[0], item[1] = item[1], -item[0]
-            # elif self.fig_type in (Figure.FIG_TYPE_Z, Figure.FIG_TYPE_S, Figure.FIG_TYPE_LINE):
-            #     # меняем местами x и y
-            #     item[0], item[1] = item[1], item[0]
-            #
-            #     if self.fig_type == Figure.FIG_TYPE_Z:
-            #         # меняем знак у всех координат
-            #         for i in (0, 3):
-            #             self.offsets[i] = [[x * -1, y * -1] for x, y in self.offsets[i]]
-            #
-            #         # меняем местами первую и последнюю точки
-            #         self.offsets[0], self.offsets[3] = self.offsets[3], self.offsets[0]
-            #     elif self.fig_type == Figure.FIG_TYPE_S:
-            #         # меняем местами рядом стоящие точки (0-1 и 2-3)
-            #         for i in (1, 3):
-            #             self.offsets[i-1], self.offsets[i] = self.offsets[i], self.offsets[i-1]
-            #
-            #         # меняем знак по одной из координат 2-х точек, в зависимости от положения это или x-ы или y-и
-            #         for i in range(self.offsets):
-            #             self.offsets[i][1 if i in (1, 2) else 0] *= -1
 
-
-    def rotateRaight(self):
+    def rotate_right(self):
         # повернуть по часовой стрелке
+        self.prew_offsets = copy.deepcopy(self.offsets)
+
         for item in self.offsets:
             if self.fig_type in (Figure.FIG_TYPE_NONE, Figure.FIG_TYPE_SQUIRE):
                 return
             else:
                 item[0], item[1] = -item[1], item[0]
+
+    def rollback(self):
+        self.offsets = self.prew_offsets
+
+    def get_center_index(self):
+        for i in range(len(self.offsets)):
+            if self.offsets[i] == [0, 0]:
+                return i
