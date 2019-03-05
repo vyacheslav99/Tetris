@@ -32,7 +32,7 @@ class Tetris(QMainWindow):
 class Board(QFrame):
 
     msg2Statusbar = pyqtSignal(str)
-    ColorTable = (0xECE9D8, 0xCC6666, 0x66CC66, 0x6666CC, 0xCCCC66, 0xCC66CC, 0x66CCCC, 0xDAAA00)
+    ColorTable = (0xECE9D8, 0xCC66CC, 0x66CC66, 0xCCCC66, 0xDAAA00, 0xCC6666, 0x66CCCC, 0x6666CC)
     Speed = 1000
     BWidth = 10
     BHeight = 22
