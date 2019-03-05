@@ -1,24 +1,26 @@
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QFrame
 from PyQt5.QtCore import Qt, QBasicTimer, pyqtSignal
-from PyQt5.QtGui import QPainter, QColor
+from PyQt5.QtGui import QPainter, QColor, QIcon
 
 from . import engine
 
 
 class Tetris(QMainWindow):
 
-    def __init__(self):
+    def __init__(self, app):
         super().__init__()
 
+        self.app = app
         self.tboard = Board(self)
         self.setCentralWidget(self.tboard)
+        self.setWindowIcon(QIcon('app.ico'))
+        self.setWindowTitle('Tetris')
 
         self.statusbar = self.statusBar()
         self.tboard.msg2Statusbar[str].connect(self.statusbar.showMessage)
 
-        self.resize(270, 570)  # 180, 380 исходный размер
+        self.resize(270, 555)  # 180, 380 исходный размер
         self.center()
-        self.setWindowTitle('Тетрис')
         self.show()
 
         self.tboard.start()
@@ -33,17 +35,21 @@ class Board(QFrame):
 
     msg2Statusbar = pyqtSignal(str)
     ColorTable = (0xECE9D8, 0xCC66CC, 0x66CC66, 0xCCCC66, 0xDAAA00, 0xCC6666, 0x66CCCC, 0x6666CC)
-    Speed = 1000
+    InitialSpeed = 1000
+    AccInterval = 1000 * 60
+    AccCoeff = 0.8
     BWidth = 10
     BHeight = 22
 
     def __init__(self, parent):
         super().__init__(parent)
 
+        self.speed = self.InitialSpeed
         self.isStarted = False
         self.isPaused = False
         self.engine = engine.Engine(Board.BWidth, Board.BHeight)
         self.timer = QBasicTimer()
+        self.acc_timer = QBasicTimer()
         self.setFocusPolicy(Qt.StrongFocus)
 
     def start(self):
@@ -54,8 +60,10 @@ class Board(QFrame):
         self.msg2Statusbar.emit(f'Lines: {self.engine.total_lines()}')
         self.isPaused = False
         self.isStarted = True
+        self.speed = self.InitialSpeed
         self.engine.start()
-        self.timer.start(self.Speed, self)
+        self.timer.start(self.speed, self)
+        self.acc_timer.start(self.AccInterval, self)
         self.update()
 
     def stop(self):
@@ -63,6 +71,7 @@ class Board(QFrame):
             return
 
         self.timer.stop()
+        self.acc_timer.stop()
         self.isStarted = False
         self.isPaused = False
         self.msg2Statusbar.emit(f'Game Over!   Total Lines: {self.engine.total_lines()}')
@@ -76,11 +85,13 @@ class Board(QFrame):
 
         if self.isPaused:
             self.timer.stop()
+            self.acc_timer.stop()
             self.msg2Statusbar.emit('-= PAUSED =-')
             self.update()
         else:
             self.msg2Statusbar.emit(f'Lines: {self.engine.total_lines()}')
-            self.timer.start(self.Speed, self)
+            self.timer.start(self.speed, self)
+            self.acc_timer.start(self.AccInterval, self)
 
     def scale_width(self):
         """ масштабирование - рассчитывает размер стороны квадрата в пикселях по оси X (ширина) """
@@ -94,6 +105,9 @@ class Board(QFrame):
         key = event.key()
 
         try:
+            if key == Qt.Key_Escape:
+                self.parent().app.quit()
+
             if key == Qt.Key_S:
                 self.start()
 
@@ -132,6 +146,11 @@ class Board(QFrame):
         try:
             if event.timerId() == self.timer.timerId():
                 self.engine.move_down()
+            elif event.timerId() == self.acc_timer.timerId():
+                self.speed *= self.AccCoeff
+                if not self.isPaused:
+                    self.timer.stop()
+                    self.timer.start(self.speed, self)
             else:
                 super(Board, self).timerEvent(event)
         except engine.StopGameException as e:
