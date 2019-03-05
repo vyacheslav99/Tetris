@@ -30,26 +30,27 @@ class Figure(object):
 
     def rotate_left(self):
         # повернуть против часовой стрелки
+        if self.fig_type in (Figure.FIG_TYPE_NONE, Figure.FIG_TYPE_SQUIRE):
+            return
+
         self.prew_offsets = copy.deepcopy(self.offsets)
 
         for item in self.offsets:
-            if self.fig_type in (Figure.FIG_TYPE_NONE, Figure.FIG_TYPE_SQUIRE):
-                return
-            else:
-                item[0], item[1] = item[1], -item[0]
+            item[0], item[1] = item[1], -item[0]
 
     def rotate_right(self):
         # повернуть по часовой стрелке
+        if self.fig_type in (Figure.FIG_TYPE_NONE, Figure.FIG_TYPE_SQUIRE):
+            return
+
         self.prew_offsets = copy.deepcopy(self.offsets)
 
         for item in self.offsets:
-            if self.fig_type in (Figure.FIG_TYPE_NONE, Figure.FIG_TYPE_SQUIRE):
-                return
-            else:
-                item[0], item[1] = -item[1], item[0]
+            item[0], item[1] = -item[1], item[0]
 
     def rollback(self):
-        self.offsets = self.prew_offsets
+        if self.prew_offsets:
+            self.offsets = self.prew_offsets
 
     def get_center_index(self):
         for i in range(len(self.offsets)):
