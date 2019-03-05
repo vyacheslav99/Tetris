@@ -18,7 +18,7 @@ class Engine(object):
         # матрица доски, содержит тип фигуры в заданной точке
         self.__board = []
 
-        # текущие координаты центра (точки со смещением 0,0) обыгрываемой в данный момент фигуры
+        # текущие координаты центра (точки со смещением 0,0) текущей (падающей) фигуры
         self.__figCenterRow = 0
         self.__figCenterCol = 0
 
@@ -74,7 +74,7 @@ class Engine(object):
         return [[centerTop + offset[0], centerLeft + offset[1]] for offset in offsets]
 
     def __calc_extremums(self, positions):
-        """ вычисляет крайние значения набора координат """
+        """ вычисляет крайние значения набора координат квадратов фигуры """
         minRow = self.__height
         maxRow = 0
         minCol = self.__width
@@ -102,7 +102,7 @@ class Engine(object):
         Появление новой фигуры.
         создает новую случайную фигуру
         забивает новую фигуру на доске по координатам, согласно ее смещениям
-        в процессе проверяет, если новая фигура где-то пересеклась с уже занятыми точками - вызывает процедуру гамовера
+        проверяет, если новая фигура где-то пересеклась с уже занятыми точками - вызывает процедуру гамовера
         """
 
         self.__figure = Figure(random.randint(1, 7))
@@ -129,9 +129,10 @@ class Engine(object):
             self.__board[coord[0]][coord[1]] = self.__figure.fig_type
 
         if not res:
-            raise StopGameException('Game over!')
+            raise StopGameException()
 
     def __anchor(self, pos):
+        """ фиксация фигуры как упавшей """
         for coord in pos:
             self.__board[coord[0]][coord[1]] = -self.__board[coord[0]][coord[1]]
 
@@ -187,9 +188,10 @@ class Engine(object):
             curr_pos = self.__calc_pos(self.__figCenterRow, self.__figCenterCol,
                                        prew_pos=(newCol == self.__figCenterCol and newRow == self.__figCenterRow))
 
+            # проверим, не вылезли ли новые координаты за левые/правые стенки или не воткнулись ли мы в
+            # торчащую где-то на доске занятую клетку
             if not self.__check_pos(new_pos):
-                # проверим, не вылезли ли новые координаты за левые/правые стенки или не воткнулись ли мы в
-                # торчащую где-то на доске занятую клетку, если да, то:
+                # если да, то:
                 if newCol != self.__figCenterCol or (newCol == self.__figCenterCol and newRow == self.__figCenterRow):
                     # если это было движение влево/право или вращение - то ничего не меняем, выходим
                     if newCol == self.__figCenterCol and newRow == self.__figCenterRow:
@@ -212,7 +214,7 @@ class Engine(object):
             for coord in curr_pos:
                 self.__board[coord[0]][coord[1]] = Figure.FIG_TYPE_NONE
 
-            # фиксируем новые координаты цетра фигуры
+            # фиксируем новые координаты центра фигуры
             self.__figCenterRow = newRow
             self.__figCenterCol = newCol
 

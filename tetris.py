@@ -6,7 +6,7 @@ from core import game
 
 def main():
     app = QApplication([])
-    tgame = game.Tetris(app)
+    tetris = game.Tetris(app)
     sys.exit(app.exec_())
 
 
